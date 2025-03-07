@@ -11,6 +11,7 @@ int main() {
 	Path bmp_filename_in;
 	cin >> bmp_filename_in;
 	BMP bmp;
-	bmp.LoadBMP(bmp_filename_in);
-	system("pause");
+	Path testpath(bmp_filename_in);
+	bmp.LoadBMP(testpath);
+	bmp.PrintBMP();
 }

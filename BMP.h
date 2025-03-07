@@ -9,7 +9,7 @@ using Path = std::string;
 
 class BMP {
 public:
-	BMP();
+	BMP() {}
 	bool LoadBMP(Path& path);
 	bool SaveBMP(Path& path);
 	void PrintBMP();
@@ -18,6 +18,5 @@ private:
 	BITMAPFILEHEADER fileHeader;
 	//https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapinfoheader
 	BITMAPINFOHEADER infoHeader;
-	//https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-rgbquad
-	std::vector<tagRGBQUAD> pixels;
+	std::vector<RGBTRIPLE> pixels;
 };
