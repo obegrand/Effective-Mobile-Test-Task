@@ -9,14 +9,18 @@ using Path = std::string;
 
 class BMP {
 public:
-	BMP() {}
 	bool LoadBMP(Path& path);
 	bool SaveBMP(Path& path);
+	bool MakeLine(int x1, int y1, int x2, int y2);
 	void PrintBMP();
 private:
-	//https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapfileheader
+	enum Color {
+		Black = 0,
+		White = 1
+	};
+	void SetColor(Color color, int x1, int y1);
+
 	BITMAPFILEHEADER fileHeader;
-	//https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapinfoheader
 	BITMAPINFOHEADER infoHeader;
 	std::vector<RGBTRIPLE> pixels;
 };
