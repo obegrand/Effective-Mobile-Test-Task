@@ -18,11 +18,28 @@ bool BMP::LoadBMP(Path& path) {
 		int padding32bit = (4 - (infoHeader.biWidth * sizeof(RGBTRIPLE) % 4)) % 4;
 		file.ignore(padding32bit);
 	}
+	file.close();
 	return true;
 }
 
 bool BMP::SaveBMP(Path& path) {
-	return false;
+	std::ofstream file(path, std::ios::binary);
+	if (!file) return false;
+
+	file.write(reinterpret_cast<char*>(&fileHeader), sizeof(BITMAPFILEHEADER));
+	file.write(reinterpret_cast<char*>(&infoHeader), sizeof(BITMAPINFOHEADER));
+
+	for (int y = 0; y < infoHeader.biHeight; ++y) {
+		for (int x = 0; x < infoHeader.biWidth; ++x) {
+			RGBTRIPLE* pixel = &pixels[y * infoHeader.biWidth + x];
+			file.write(reinterpret_cast<char*>(pixel), sizeof(RGBTRIPLE));
+		}
+		int padding32bit = (4 - (infoHeader.biWidth * sizeof(RGBTRIPLE) % 4)) % 4;
+		char padding[4] = { 00,00,00,00 };
+		file.write(padding,padding32bit);
+	}
+	file.close();
+	return true;
 }
 
 bool BMP::MakeLine(int x1, int y1, int x2, int y2) {
@@ -54,7 +71,21 @@ bool BMP::MakeLine(int x1, int y1, int x2, int y2) {
 		}
 	}
 	return true;
+}
 
+void BMP::SetColor(Color color, int x, int y) {
+	int index = (infoHeader.biHeight - y - 1) * infoHeader.biWidth + x;
+	RGBTRIPLE* pixel = &pixels[index];
+	if (color == White) {
+		pixel->rgbtBlue = 255;
+		pixel->rgbtGreen = 255;
+		pixel->rgbtRed = 255;
+	}
+	else {
+		pixel->rgbtBlue = 0;
+		pixel->rgbtGreen = 0;
+		pixel->rgbtRed = 0;
+	}
 }
 
 void BMP::PrintBMP() {
@@ -70,20 +101,5 @@ void BMP::PrintBMP() {
 			}
 		}
 		std::cout << '\n';
-	}
-}
-
-void BMP::SetColor(Color color, int x, int y) {
-	int index = (infoHeader.biHeight - y - 1) * infoHeader.biWidth + x;
-	RGBTRIPLE* pixel = &pixels[index];
-	if (color == White){
-		pixel->rgbtBlue = 255;
-		pixel->rgbtGreen = 255;
-		pixel->rgbtRed = 255;
-	}
-	else {
-		pixel->rgbtBlue = 0;
-		pixel->rgbtGreen = 0;
-		pixel->rgbtRed = 0;
 	}
 }
