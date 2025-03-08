@@ -22,5 +22,5 @@ private:
 
 	BITMAPFILEHEADER fileHeader;
 	BITMAPINFOHEADER infoHeader;
-	std::vector<RGBTRIPLE> pixels;
+	std::vector<RGBQUAD> pixels;
 };

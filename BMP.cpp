@@ -8,15 +8,31 @@ bool BMP::LoadBMP(Path& path) {
 	file.read(reinterpret_cast<char*>(&fileHeader), sizeof(BITMAPFILEHEADER));
 	file.read(reinterpret_cast<char*>(&infoHeader), sizeof(BITMAPINFOHEADER));
 
+	int padding = 0;
+	if (infoHeader.biBitCount == 32) {
+		padding = (4 - (infoHeader.biWidth * sizeof(RGBQUAD) % 4)) % 4;
+	}
+	else {
+		padding = (4 - (infoHeader.biWidth * sizeof(RGBTRIPLE) % 4)) % 4;
+	}
+
 	pixels.reserve(infoHeader.biHeight * infoHeader.biWidth);
 	for (int y = 0; y < infoHeader.biHeight; ++y) {
 		for (int x = 0; x < infoHeader.biWidth; ++x) {
-			RGBTRIPLE pixel;
-			file.read(reinterpret_cast<char*>(&pixel), sizeof(RGBTRIPLE));
+			RGBQUAD pixel;
+			if (infoHeader.biBitCount == 32) {
+				file.read(reinterpret_cast<char*>(&pixel), sizeof(RGBQUAD));
+			}
+			else {
+				file.read(reinterpret_cast<char*>(&pixel), sizeof(RGBTRIPLE));
+			}
+			if ((pixel.rgbBlue > 0 || pixel.rgbRed > 0 || pixel.rgbGreen > 0) &&
+				(pixel.rgbBlue < 255 || pixel.rgbRed < 255 || pixel.rgbGreen < 255)) {
+				return false;
+			}
 			pixels.push_back(pixel);
 		}
-		int padding32bit = (4 - (infoHeader.biWidth * sizeof(RGBTRIPLE) % 4)) % 4;
-		file.ignore(padding32bit);
+		file.ignore(padding);
 	}
 	file.close();
 	return true;
@@ -29,15 +45,29 @@ bool BMP::SaveBMP(Path& path) {
 	file.write(reinterpret_cast<char*>(&fileHeader), sizeof(BITMAPFILEHEADER));
 	file.write(reinterpret_cast<char*>(&infoHeader), sizeof(BITMAPINFOHEADER));
 
+	int padding = 0;
+	if (infoHeader.biBitCount == 32) {
+		padding = (4 - (infoHeader.biWidth * sizeof(RGBQUAD) % 4)) % 4;
+	}
+	else {
+		padding = (4 - (infoHeader.biWidth * sizeof(RGBTRIPLE) % 4)) % 4;
+	}
+	char padByte = 0;
+
 	for (int y = 0; y < infoHeader.biHeight; ++y) {
 		for (int x = 0; x < infoHeader.biWidth; ++x) {
-			RGBTRIPLE* pixel = &pixels[y * infoHeader.biWidth + x];
-			file.write(reinterpret_cast<char*>(pixel), sizeof(RGBTRIPLE));
+			if (infoHeader.biBitCount == 32) {
+				const RGBQUAD& pixel = pixels[y * infoHeader.biWidth + x];
+				file.write(reinterpret_cast<const char*>(&pixel), sizeof(RGBQUAD));
+			}
+			else {
+				const RGBQUAD& pixel = pixels[y * infoHeader.biWidth + x];
+				file.write(reinterpret_cast<const char*>(&pixel), sizeof(RGBTRIPLE));
+			}
 		}
-		int padding32bit = (4 - (infoHeader.biWidth * sizeof(RGBTRIPLE) % 4)) % 4;
-		char padding[4] = { 00,00,00,00 };
-		file.write(padding,padding32bit);
+		file.write(&padByte, padding);
 	}
+
 	file.close();
 	return true;
 }
@@ -75,16 +105,16 @@ bool BMP::MakeLine(int x1, int y1, int x2, int y2) {
 
 void BMP::SetColor(Color color, int x, int y) {
 	int index = (infoHeader.biHeight - y - 1) * infoHeader.biWidth + x;
-	RGBTRIPLE* pixel = &pixels[index];
+	RGBQUAD* pixel = &pixels[index];
 	if (color == White) {
-		pixel->rgbtBlue = 255;
-		pixel->rgbtGreen = 255;
-		pixel->rgbtRed = 255;
+		pixel->rgbBlue = 255;
+		pixel->rgbGreen = 255;
+		pixel->rgbRed = 255;
 	}
 	else {
-		pixel->rgbtBlue = 0;
-		pixel->rgbtGreen = 0;
-		pixel->rgbtRed = 0;
+		pixel->rgbBlue = 0;
+		pixel->rgbGreen = 0;
+		pixel->rgbRed = 0;
 	}
 }
 
@@ -92,8 +122,8 @@ void BMP::PrintBMP() {
 	if (pixels.size() == 0)return;
 	for (int y = infoHeader.biHeight; y != 0; --y) {
 		for (int x = 0; x < infoHeader.biWidth; ++x) {
-			RGBTRIPLE pixel = pixels[(y - 1) * infoHeader.biWidth + x];
-			if (pixel.rgbtBlue == 255) {
+			RGBQUAD pixel = pixels[(y - 1) * infoHeader.biWidth + x];
+			if (pixel.rgbBlue == 255) {
 				std::cout << char(219) << char(219);
 			}
 			else {
