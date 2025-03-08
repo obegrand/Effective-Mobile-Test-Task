@@ -26,10 +26,6 @@ bool BMP::LoadBMP(Path& path) {
 			else {
 				file.read(reinterpret_cast<char*>(&pixel), sizeof(RGBTRIPLE));
 			}
-			if ((pixel.rgbBlue > 0 || pixel.rgbRed > 0 || pixel.rgbGreen > 0) &&
-				(pixel.rgbBlue < 255 || pixel.rgbRed < 255 || pixel.rgbGreen < 255)) {
-				return false;
-			}
 			pixels.push_back(pixel);
 		}
 		file.ignore(padding);

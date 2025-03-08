@@ -12,13 +12,33 @@ int main() {
 #ifdef DEBUG
 	Path bmp_filename_in("in.bmp");
 	BMP bmp;
-	bmp.LoadBMP(bmp_filename_in);
+	if (bmp.LoadBMP(bmp_filename_in)) {
+		cout << "file uploaded successfully\n";
+	}
+	else {
+		cout << "file upload fail\n";
+	}
 	bmp.PrintBMP();
-	bmp.MakeLine(4, 4, 17, 13);
-	bmp.MakeLine(19, 3, 6, 16);
+	if (bmp.MakeLine(4, 4, 17, 13)) {
+		cout << "line drawed successfully\n";
+	}
+	else {
+		cout << "line drawed fail\n";
+	}
+	if (bmp.MakeLine(19, 3, 6, 16)) {
+		cout << "line drawed successfully\n";
+	}
+	else {
+		cout << "line drawed fail\n";
+	}
 	bmp.PrintBMP();
 	Path bmp_filename_out("out.bmp");
-	bmp.SaveBMP(bmp_filename_out);
+	if (bmp.SaveBMP(bmp_filename_out)) {
+		cout << "file saving successfully\n";
+	}
+	else {
+		cout << "file saving fail\n";
+	}
 #endif // DEBUG
 #ifndef DEBUG
 	cout << "Enter input BMP file name : ";
